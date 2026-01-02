@@ -1,7 +1,7 @@
 import './app.css';
-import App from './App.svelte';
+import AppSvelte from './App.svelte';
 
-const app = new App({
+const app = new AppSvelte({
   target: document.getElementById('app')!,
 });
 
