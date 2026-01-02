@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {CirclePlay, FileTypeCorner, Github, Loader, Sidebar} from 'lucide-svelte';
+    import {CirclePlay, FileTypeCorner, Github, Loader} from 'lucide-svelte';
     import {b_stack_options, f_stack_options} from "./stack_options.ts";
     import type {ProjectPlan} from "./types/ProjectPlan.ts";
     import type {ProjectTask} from "./types/ProjectTask.ts";
@@ -24,24 +24,37 @@
     let isSidebarOpen = false;
     let tabs: ExplanationTab[] = [];
     let activeTabId: string | null = null;
+    let isDataLoaded = false; // Flag to prevent saving during initial load
 
     onMount(async () => {
-        const {projectPlan: loadedPlan, tabs: loadedTabs} = await loadFromDB();
+    try {
+        const data = await loadFromDB();
 
-        if (loadedPlan) {
-            projectPlan = loadedPlan;
-        }
+        if (data.projectPlan) projectPlan = data.projectPlan;
+        if (data.frontStack !== undefined) frontStack = data.frontStack;
+        if (data.backStack !== undefined) backStack = data.backStack;
+        if (data.idea !== undefined) idea = data.idea;
 
-        if (loadedTabs && loadedTabs.length > 0) {
-            tabs = loadedTabs;
-            activeTabId = loadedTabs[0].id;
+        if (data.tabs?.length) {
+            tabs = data.tabs;
+            activeTabId = data.tabs[0].id;
             isSidebarOpen = true;
         }
-    });
 
-    // Reactive Savers
-    $: if (projectPlan) saveToDB("projectPlan", projectPlan);
-    $: if (tabs) saveToDB("tabs", tabs);
+        isDataLoaded = true; // Mark data as loaded, now we can save changes
+
+    } catch (error) {
+        console.error("Ошибка при загрузке данных:", error);
+        isDataLoaded = true; // Even on error, allow saving
+    }
+});
+
+    // Reactive Savers - only save after initial data load
+    $: if (isDataLoaded && projectPlan) saveToDB("projectPlan", projectPlan);
+    $: if (isDataLoaded && tabs) saveToDB("tabs", tabs);
+    $: if (isDataLoaded && frontStack !== undefined) saveToDB("frontStack", frontStack);
+    $: if (isDataLoaded && backStack !== undefined) saveToDB("backStack", backStack);
+    $: if (isDataLoaded && idea !== undefined) saveToDB("idea", idea);
 
     async function generatePlan(): Promise<ProjectPlan | null | undefined> {
         if (!idea) {
@@ -64,7 +77,8 @@
                 projectPlan = data.result;
             }
         } catch (e) {
-            alert("Error generating plan: " + e.message);
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            alert("Error generating plan: " + errorMessage);
         } finally {
             loading = false;
         }
@@ -81,15 +95,12 @@
 
         const existingTab = tabs.find(t => t.id === task.title);
         if (existingTab) {
-            // Если вкладка существует и уже имеет данные, просто делаем её активной
             if (existingTab.data !== null) {
                 activeTabId = existingTab.id;
                 return;
             }
-            // Если вкладка существует, но данных нет, делаем её активной и загружаем данные
             activeTabId = existingTab.id;
         } else {
-            // Если вкладки нет, создаём новую
             const newTab = {
                 id: task.title,
                 title: task.title,
@@ -101,7 +112,6 @@
             activeTabId = newTab.id;
         }
 
-        // Обновляем состояние загрузки
         tabs = tabs.map(t => t.id === task.title ? {...t, loading: true} : t);
 
         try {
@@ -139,7 +149,7 @@
     <div class="relative z-10 w-full max-w-3xl flex flex-col items-center text-center">
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">Side Project Starter Pack</h1>
         <h2 class="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-            <span class="text-alabaster-grey">Prompt it,</span> <span class="text-stormy-teal">tweak it,</span> <span
+            <span class="text-alabaster-grey">Prompt it,</span> <span class="text-stormy-teal">discover it,</span> <span
                 class="text-yale-blue">use it</span>
         </h2>
 
@@ -159,7 +169,10 @@
                 <button
                         on:click={generatePlan}
                         disabled={loading}
-                        class="p-2 bg-stormy-teal hover:bg-yale-blue cursor-pointer flex items-center gap-2 rounded-lg
+                        class="p-2 bg-stormy-teal hover:bg-yale-blue cursor-pointer
+                         disabled:cursor-not-allowed
+                         disabled:hover:bg-stormy-teal
+                         flex items-center gap-2 rounded-lg
                          transition-all shadow-[0_0_15px_rgba(147,51,234,0.3)]">
                     {#if loading}
                         <span>Thinking...</span>
@@ -201,7 +214,7 @@
                 </a>
 
                 <div class="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
-                    <a href="#" class="text-gray-500 hover:text-white transition-colors">
+                    <a href="https://github.com/deslancer/Side-Project-Starter-Pack/tree/main" target="_blank" class="text-gray-500 hover:text-white transition-colors">
                         <Github size={20}/>
                     </a>
                 </div>
