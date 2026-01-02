@@ -4,7 +4,7 @@ from typing import Optional
 
 app = FastAPI(title="Backend API", version="1.0.0")
 
-# Создаем роутер для API с префиксом
+
 api_router = APIRouter(prefix="/api", tags=["API"])
 
 
