@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {CirclePlay, FileTypeCorner, Github, Loader} from 'lucide-svelte';
+    import {CirclePlay, Github, Loader} from 'lucide-svelte';
     import {b_stack_options, f_stack_options} from "./stack_options.ts";
     import type {ProjectPlan} from "./types/ProjectPlan.ts";
     import type {ProjectTask} from "./types/ProjectTask.ts";
@@ -44,7 +44,7 @@
         isDataLoaded = true; // Mark data as loaded, now we can save changes
 
     } catch (error) {
-        console.error("Ошибка при загрузке данных:", error);
+        console.error("Error loading data:", error);
         isDataLoaded = true; // Even on error, allow saving
     }
 });
@@ -136,6 +136,7 @@
         }
     }
 
+
 </script>
 
 <main class="relative min-h-screen w-full bg-[#0a0a0b] text-white flex flex-col items-center justify-center px-4 overflow-hidden font-sans">
@@ -145,9 +146,18 @@
         <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_50%,rgba(50,100,255,0.05),transparent_25%)]"></div>
         <div class="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_50%,rgba(255,100,50,0.05),transparent_25%)]"></div>
     </div>
-
+    <div class="flex justify-between sticky w-full h-20 items-center">
+        <div class="flex items-center gap-2 px-4 py-2 md:px-8 md:py-4">
+            <img src="/logo_full.svg" alt="Side Project Starter Pack Logo" class="h-8" />
+            <h1 class="text-2xl md:text-3xl text-stormy-teal font-bold tracking-tight ">Side Project Starter Pack</h1>
+        </div>
+        <div>
+            <a href="https://github.com/deslancer/Side-Project-Starter-Pack/tree/main" target="_blank" class="text-gray-500 hover:text-white transition-colors">
+                <Github size={28}/>
+            </a>
+        </div>
+    </div>
     <div class="relative z-10 w-full max-w-3xl flex flex-col items-center text-center">
-        <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">Side Project Starter Pack</h1>
         <h2 class="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
             <span class="text-alabaster-grey">Prompt it,</span> <span class="text-stormy-teal">discover it,</span> <span
                 class="text-yale-blue">use it</span>
@@ -208,21 +218,10 @@
                 </select>
             </div>
 
-            <div class="flex items-center gap-2">
-                <a href="#" class="text-gray-500 hover:text-white transition-colors">
-                    <FileTypeCorner size={20}/>
-                </a>
-
-                <div class="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
-                    <a href="https://github.com/deslancer/Side-Project-Starter-Pack/tree/main" target="_blank" class="text-gray-500 hover:text-white transition-colors">
-                        <Github size={20}/>
-                    </a>
-                </div>
-            </div>
         </div>
         <div class="border-b border-b-graphite h-1 w-full my-5"></div>
         {#if projectPlan}
-            <TasksList projectPlan={projectPlan} openTaskTab={openTaskTab}/>
+            <TasksList projectPlan={projectPlan} tabs={tabs} openTaskTab={openTaskTab}/>
         {/if}
     </div>
     <ExplanationSidebar bind:isOpen={isSidebarOpen} bind:tabs={tabs} bind:activeTabId={activeTabId}/>
